@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>更新管理</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .btn {
+            padding: 8px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .btn-danger {
+            background-color: #f44336;
+        }
+        .status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #dff0d8;
+            color: #3c763d;
+        }
+        .error {
+            background-color: #f2dede;
+            color: #a94442;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>更新管理</h1>
+        
+        <div class="card">
+            <h2>当前版本信息</h2>
+            <p id="currentVersion">正在获取版本信息...</p>
+            <button class="btn" onclick="checkUpdate()">检查更新</button>
+            <div id="updateStatus" class="status"></div>
+        </div>
+        
+        <div class="card">
+            <h2>更新操作</h2>
+            <button class="btn" onclick="downloadUpdate()">下载更新</button>
+            <button class="btn" onclick="installUpdate()">安装更新</button>
+            <button class="btn btn-danger" onclick="rollbackUpdate()">回滚更新</button>
+            <div id="operationStatus" class="status"></div>
+        </div>
+    </div>
+    
+    <script>
+        function checkUpdate() {
+            document.getElementById('updateStatus').innerHTML = '正在检查更新...';
+            axios.get('/api/update/check_update')
+                .then(response => {
+                    if (response.data) {
+                        document.getElementById('updateStatus').innerHTML = 
+                            `发现新版本: ${response.data.version} <br>更新内容: ${response.data.description}`;
+                        document.getElementById('updateStatus').className = 'status success';
+                    } else {
+                        document.getElementById('updateStatus').innerHTML = '当前已是最新版本';
+                        document.getElementById('updateStatus').className = 'status success';
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('updateStatus').innerHTML = '检查更新失败: ' + error.message;
+                    document.getElementById('updateStatus').className = 'status error';
+                });
+        }
+        
+        function downloadUpdate() {
+            document.getElementById('operationStatus').innerHTML = '正在下载更新...';
+            axios.post('/api/update/download_update', { download_url: 'http://example.com/update/latest.zip' })
+                .then(response => {
+                    document.getElementById('operationStatus').innerHTML = 
+                        response.data.success ? '下载更新成功' : '下载更新失败';
+                    document.getElementById('operationStatus').className = 
+                        response.data.success ? 'status success' : 'status error';
+                })
+                .catch(error => {
+                    document.getElementById('operationStatus').innerHTML = '下载更新失败: ' + error.message;
+                    document.getElementById('operationStatus').className = 'status error';
+                });
+        }
+        
+        function installUpdate() {
+            document.getElementById('operationStatus').innerHTML = '正在安装更新...';
+            axios.post('/api/update/install_update')
+                .then(response => {
+                    document.getElementById('operationStatus').innerHTML = 
+                        response.data.success ? '安装更新成功' : '安装更新失败';
+                    document.getElementById('operationStatus').className = 
+                        response.data.success ? 'status success' : 'status error';
+                })
+                .catch(error => {
+                    document.getElementById('operationStatus').innerHTML = '安装更新失败: ' + error.message;
+                    document.getElementById('operationStatus').className = 'status error';
+                });
+        }
+        
+        function rollbackUpdate() {
+            document.getElementById('operationStatus').innerHTML = '正在回滚更新...';
+            axios.post('/api/update/rollback_update')
+                .then(response => {
+                    document.getElementById('operationStatus').innerHTML = 
+                        response.data.success ? '回滚更新成功' : '回滚更新失败';
+                    document.getElementById('operationStatus').className = 
+                        response.data.success ? 'status success' : 'status error';
+                })
+                .catch(error => {
+                    document.getElementById('operationStatus').innerHTML = '回滚更新失败: ' + error.message;
+                    document.getElementById('operationStatus').className = 'status error';
+                });
+        }
+        
+        // 初始化页面时检查当前版本
+        document.getElementById('currentVersion').innerHTML = '当前版本: 1.0.0';
+    </script>
+</body>
+</html>
